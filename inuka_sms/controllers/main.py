@@ -23,9 +23,7 @@ class SMSPushNotification(http.Controller):
         model = False
         record_id = False
         record_name = False
-        msg = "<b>SMS Received</b><ul>"
-        msg += "<li>%s" % (kwargs.get('text'))
-        msg += "</ul>"
+
         partner = request.env['res.partner'].sudo().search([('mobile', '=', kwargs.get('from'))], limit=1)
         helpdesk_ticket = False
         if kwargs.get('keyword'):
@@ -36,12 +34,12 @@ class SMSPushNotification(http.Controller):
             model = 'helpdesk.ticket'
             record_id = helpdesk_ticket.id
             record_name = helpdesk_ticket.name
-            helpdesk_ticket.message_post(body=msg)
+
         elif partner and not helpdesk_ticket:
             model = 'res.partner'
             record_id = partner.id
             record_name = partner.name
-            partner.message_post(body=msg)
+
         model_id = False
         if model:
             model_id = request.env['ir.model'].sudo().search([('model', '=', model)], limit=1).id
@@ -58,4 +56,14 @@ class SMSPushNotification(http.Controller):
             'record_id': record_id,
             'record_name': record_name,
         })
+        if model == 'res.partner':
+            msg = "<b>SMS Received</b><ul>"
+            msg += "<li>%s - <a href=# data-oe-model=sms.message data-oe-id=%d>Open SMS</a>" % (kwargs.get('text'), inbound_sms.id)
+            msg += "</ul>"
+            partner.message_post(body=msg)
+        else:
+            msg = "<b>SMS Received</b><ul>"
+            msg += "<li>%s - <a href=# data-oe-model=sms.message data-oe-id=%d>Open SMS</a>" % (kwargs.get('text'), inbound_sms.id)
+            msg += "</ul>"
+            helpdesk_ticket.message_post(body=msg)
         return 'Reply Received'

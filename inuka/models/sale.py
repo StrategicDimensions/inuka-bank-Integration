@@ -138,6 +138,8 @@ class SaleOrder(models.Model):
     @api.multi
     def action_confirm(self):
         for order in self:
+            if order.carrier_id.blocked_for_delivery:
+                raise UserError(_("Delivery Method not allowed. Please select a different delivery method to continue."))
             res = order.carrier_id.rate_shipment(order)
             order.get_delivery_price()
             order.set_delivery_line()
