@@ -20,7 +20,7 @@ class SaleOrder(models.Model):
 
     @api.model
     def _get_default_team(self):
-        return self.env['crm.team']._get_default_team_id()
+        return self.env['crm.team']._get_default_team_id() or self.env['crm.team'].search([('company_id', '=', self.env.user.company_id.id)], limit=1)
 
     @api.depends('order_line','order_line.pv')
     def _compute_tot_pv(self):

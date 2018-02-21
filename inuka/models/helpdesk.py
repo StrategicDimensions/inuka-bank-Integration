@@ -78,6 +78,8 @@ class HelpdeskTicket(models.Model):
         stage = self.env['helpdesk.stage'].search([('name', '=', 'Solved')], limit=1)
         for ticket in self:
             attachments = self.env['ir.attachment'].search([('res_id', '=', ticket.id), ('res_model', '=', 'helpdesk.ticket')])
+            if not attachments:
+                continue
 
             acc_number = ticket.name.split("[")[1][:-1]
             bank_account_id = ResPartnerBank.search([('acc_number', '=', acc_number)], limit=1).id
@@ -86,7 +88,7 @@ class HelpdeskTicket(models.Model):
                 fp = BytesIO()
                 fp.write(base64.b64decode(attachment.datas))
                 if not zipfile.is_zipfile(fp):
-                    raise UserError(_('File is not a zip file!'))
+                    continue
                 if zipfile.is_zipfile(fp):
                     with zipfile.ZipFile(fp, "r") as z:
                         with tempdir() as module_dir:
@@ -110,6 +112,8 @@ class HelpdeskTicket(models.Model):
         stage = self.env['helpdesk.stage'].search([('name', '=', 'Solved')], limit=1)
         for ticket in self:
             attachments = self.env['ir.attachment'].search([('res_id', '=', ticket.id), ('res_model', '=', 'helpdesk.ticket')])
+            if not attachments:
+                continue
 
             acc_number = ticket.name.split("[")[1][:-1]
             bank_account_id = ResPartnerBank.search([('acc_number', '=', acc_number)], limit=1).id
@@ -118,7 +122,7 @@ class HelpdeskTicket(models.Model):
                 fp = BytesIO()
                 fp.write(base64.b64decode(attachment.datas))
                 if not zipfile.is_zipfile(fp):
-                    raise UserError(_('File is not a zip file!'))
+                    continue
                 if zipfile.is_zipfile(fp):
                     with zipfile.ZipFile(fp, "r") as z:
                         with tempdir() as module_dir:

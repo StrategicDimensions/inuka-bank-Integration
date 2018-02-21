@@ -32,6 +32,7 @@ class SmsList(models.Model):
         recipients = self.env['sms.recipients'].search([('sms_list_id', '=', self.id)])
         action = self.env.ref('inuka_sms.action_sms_recipients_form').read()[0]
         action['domain'] = [('id', 'in', recipients.ids)]
+        action['context'] = {'default_sms_list_id': self.id}
         return action
 
 
@@ -53,6 +54,12 @@ class SmsRecipients(models.Model):
     optout = fields.Boolean("Opt Out")
     sms_list_id = fields.Many2one("sms.list", string="SMS List")
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.user.company_id)
+
+    @api.onchange('partner_id', 'mobile')
+    def _onchange_member(self):
+        if not self.partner_id and not self.mobile:
+            return
+        self.name = self.partner_id.name or self.mobile
 
 
 class MassSms(models.Model):
@@ -151,7 +158,7 @@ class MassSms(models.Model):
         participants = self.get_remaining_recipients()
         for participant in participants[:self.batch_size]:
             if participant.partner_id.mobile:
-                render_msg = self.env['sms.template'].render_template(self.sms_template_id.template_body, 'res.partner', participant.partner_id.id)
+                render_msg = self.env['sms.template'].render_template(self.sms_template_id.template_body, self.sms_template_id.model_id.model, participant.partner_id.id)
                 message = tools.html2plaintext(render_msg)
                 msg_compose = SmsCompose.create({
                     'record_id': participant.partner_id.id,
