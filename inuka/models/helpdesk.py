@@ -82,7 +82,7 @@ class HelpdeskTicket(models.Model):
                 continue
 
             acc_number = ticket.name.split("[")[1][:-1]
-            bank_account_id = ResPartnerBank.search([('acc_number', '=', acc_number)], limit=1).id
+            bank_account_id = ResPartnerBank.search([('acc_number', 'in', (acc_number,'00000'+acc_number))], limit=1).id
             journal_id = self.env['account.journal'].search([('bank_account_id', '=', bank_account_id)], limit=1).id
             for attachment in attachments:
                 fp = BytesIO()
