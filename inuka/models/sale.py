@@ -344,8 +344,11 @@ class SaleUpload(models.Model):
         record_count = status_count = 0
         for data in row_list:
             if data.get('MEMBERID'):
-                part = Partner.search([('ref', '=', data['MEMBERID'])], limit=1)
-                if part:
+                sql_query = """SELECT id, status FROM res_partner WHERE ref = %s LIMIT 1"""
+                params = (data.get('MEMBERID'),)
+                self.env.cr.execute(sql_query, params)
+                result = self.env.cr.fetchall()
+                if result:
                     try:
                         sql_query ="""UPDATE res_partner SET personal_pv = %s,
                                     pv_downline_1 = %s, pv_downline_2 = %s,
@@ -356,10 +359,10 @@ class SaleUpload(models.Model):
                         self.env.cr.execute(sql_query, params)
                         record_count += 1
     
-                        if part.status != status_dict.get(data.get('STATUS')):
+                        if result[0][1] != status_dict.get(data.get('STATUS')):
                             sql_query = """INSERT INTO sale_upload_intermediate (partner_id, old_status, new_status, active)
                                     VALUES (%s, %s, %s, %s)"""
-                            params = (part.id, part.status, status_dict.get(data.get('STATUS')), True)
+                            params = (result[0][0], result[0][1], status_dict.get(data.get('STATUS')), True)
                             self.env.cr.execute(sql_query, params)
                             self.env.cr.commit()
                             status_count += 1

@@ -473,4 +473,16 @@
         </field>
     </record>
 
+    <record id="view_sms_account_form_inherit_inuka" model="ir.ui.view">
+        <field name="name">sms.account.form.inherit.inuka</field>
+        <field name="model">sms.account</field>
+        <field name="inherit_id" ref="sms_frame.sms_account_view_form"/>
+        <field name="arch" type="xml">
+            <field name="gateway_model" position="after">
+                <field name="active"/>
+                <field name="international"/>
+            </field>
+        </field>
+    </record>
+
 </odoo>

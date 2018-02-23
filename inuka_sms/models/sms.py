@@ -319,6 +319,24 @@ class SmsMessage(models.Model):
 class SmsCompose(models.Model):
     _inherit = "sms.compose"
 
+    @api.model
+    def create(self, vals):
+        if vals is None:
+            vals = {}
+        SmsAccount = self.env['sms.account']
+        SmsNumber = self.env['sms.number']
+        to_number = vals.get('to_number')
+        if to_number:
+            if to_number.startswith('27'):
+                sms_account = SmsAccount.search([('international', '=', False)], limit=1)
+            else:
+                sms_account = SmsAccount.search([('international', '=', True)], limit=1)
+            if not sms_account:
+                sms_account = SmsAccount.search([], limit=1)
+            from_mobile = SmsNumber.search([('account_id', '=', sms_account.id)], limit=1)
+            vals['from_mobile_id'] = from_mobile.id
+        return super(SmsCompose, self).create(vals)
+
     @api.multi
     def send_entity(self):
         """Attempt to send the sms, if any error comes back show it to the user and only log the smses that successfully sent"""
@@ -367,5 +385,5 @@ class SmsCompose(models.Model):
 class SmsAccount(models.Model):
     _inherit = "sms.account"
 
-    active = fields.Boolean()
+    active = fields.Boolean(default=True)
     international = fields.Boolean()
